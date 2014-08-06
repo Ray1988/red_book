@@ -2,11 +2,19 @@ __author__ = 'lucky'
 from django.forms import widgets
 from rest_framework import serializers
 from models import Question, LANGUAGE_CHOICES, STYLE_CHOICES
+from django.contrib.auth.models import User
 
 class QuestionSerializer(serializers.ModelSerializer):
+    owner = serializers.Field(source='owner.username')
     class Meta:
         model=Question
-        fields=('id', 'title', 'code', 'linenos', 'language', 'style')
+        fields=('id', 'title', 'code', 'linenos', 'language', 'style', 'owner')
+
+class UserSerializer(serializers.ModelSerializer):
+    questions = serializers.PrimaryKeyRelatedField(many=True)
+    class Meta:
+        model=User
+        fields=('id', 'username', 'questions')
     # pk=serializers.Field()# fiedl is an untyped read-only field
     #
     # title=serializers.CharField(required=False,

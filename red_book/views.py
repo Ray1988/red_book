@@ -9,19 +9,36 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import mixins
 from rest_framework import generics
-
+from rest_framework import permissions
 
 from models import Question
+from django.contrib.auth.models import User
 from serializer import QuestionSerializer
+from serializer import UserSerializer
+from permissions import IsOwnerOrReadOnly
 
+class UserList(generics.ListCreateAPIView):
+    queryset=User.objects.all()
+    serializer_class = UserSerializer
+
+class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 class QuestionList(generics.ListCreateAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
+    def pre_save(self, obj):
+        obj.owner = self.request.user
+
 
 class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOrReadOnly)
+    def pre_save(self, obj):
+        obj.owner = self.request.user
 
 # class QuestionList(mixins.ListModelMixin,
 #                    mixins.CreateModelMixin,

@@ -10,6 +10,11 @@ from rest_framework import status
 from rest_framework import mixins
 from rest_framework import generics
 from rest_framework import permissions
+from rest_framework import renderers
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+
 
 from models import Question
 from django.contrib.auth.models import User
@@ -39,6 +44,20 @@ class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOrReadOnly)
     def pre_save(self, obj):
         obj.owner = self.request.user
+
+class QuestionHighlight(generics.GenericAPIView):
+    queryset=Question.objects.all()
+    renderer_classes=(renderers.StaticHTMLRenderer,)
+
+    def get(self, request, *args, **kwargs):
+        question=self.get_object()
+        return Response(question.highlighted)
+
+@api_view(('GET', ))
+def api_root (request, format=None):
+    return Response ({'users': reverse('user-list', request=request, format=format),
+                      'questions':reverse('question-list', request=request, format=format)
+    })
 
 # class QuestionList(mixins.ListModelMixin,
 #                    mixins.CreateModelMixin,
